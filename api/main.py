@@ -38,6 +38,28 @@ symptom_vectorizer = joblib.load("C:\\Major project\\ai-health-assistant\\src\\m
 # Database Setup
 # -------------------------
 Base.metadata.create_all(bind=engine)
+
+# Handle schema updates for existing database (SQLite specific)
+import sqlite3
+def update_schema():
+    try:
+        conn = sqlite3.connect('health_app.db')
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(users);")
+        columns = [info[1] for info in cursor.fetchall()]
+        if 'role' not in columns:
+            cursor.execute("ALTER TABLE users ADD COLUMN role VARCHAR DEFAULT 'patient';")
+        if 'full_name' not in columns:
+            cursor.execute("ALTER TABLE users ADD COLUMN full_name VARCHAR;")
+        if 'hospital_name' not in columns:
+            cursor.execute("ALTER TABLE users ADD COLUMN hospital_name VARCHAR;")
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Schema update error: {e}")
+
+update_schema()
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
@@ -105,6 +127,9 @@ class RegisterInput(BaseModel):
     username: str
     email: str
     password: str
+    role: str = "patient"
+    full_name: str = None
+    hospital_name: str = None
 
 # -------------------------
 # Home Route
@@ -281,13 +306,20 @@ def register(data: RegisterInput, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.username == data.username).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Username already exists")
+    
+    existing_email = db.query(User).filter(User.email == data.email).first()
+    if existing_email:
+        raise HTTPException(status_code=400, detail="Email already exists")
 
     hashed_pw = hash_password(data.password)
 
     user = User(
         username=data.username,
         email=data.email,
-        hashed_password=hashed_pw
+        hashed_password=hashed_pw,
+        role=data.role,
+        full_name=data.full_name,
+        hospital_name=data.hospital_name
     )
 
     db.add(user)
@@ -308,7 +340,12 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
     access_token = create_access_token(data={"sub": user.username})
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer",
+        "role": user.role,
+        "full_name": user.full_name
+    }
 
 # -------------------------
 # History Endpoint

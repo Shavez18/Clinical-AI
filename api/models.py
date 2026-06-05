@@ -10,6 +10,9 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
+    role = Column(String, default="patient")
+    full_name = Column(String, nullable=True)
+    hospital_name = Column(String, nullable=True)
     
 class PredictionHistory(Base):
     __tablename__ = "prediction_history"
