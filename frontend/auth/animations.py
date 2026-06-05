@@ -6,7 +6,8 @@ LOGIN_ANIMATIONS_CSS = """
 
 [data-testid="stSidebar"],[data-testid="collapsedControl"],header{display:none!important;}
 .block-container{padding:0!important;max-width:100%!important;}
-html,body,.stApp{overflow:hidden!important;background:transparent!important;font-family:'DM Sans',sans-serif!important;}
+html,body,.stApp{background:transparent!important;font-family:'DM Sans',sans-serif!important;}
+.stApp.login-active{overflow:hidden!important;}
 
 .clinicalai-bg{position:fixed;inset:0;z-index:-2;pointer-events:none;
   background:linear-gradient(135deg,#050e1a 0%,#071828 30%,#0a2030 60%,#06141f 100%);

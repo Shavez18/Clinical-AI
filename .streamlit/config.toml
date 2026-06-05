@@ -1,0 +1,24 @@
+[server]
+# Streamlit Cloud entry point must be in the repo root or subdirectory
+# This is handled by the deployment settings, not config.toml
+
+# Performance settings
+maxUploadSize = 50
+enableCORS = false
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "dark"
+primaryColor = "#00c8b4"
+backgroundColor = "#050e1a"
+secondaryBackgroundColor = "#071828"
+textColor = "#f0f6ff"
+font = "sans serif"
+
+[runner]
+# Prevent rerun loops
+fastReruns = true
+magicEnabled = false

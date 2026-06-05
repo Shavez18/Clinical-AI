@@ -26,12 +26,12 @@ def render_doctor_login():
         if st.button("🔑  Sign In", use_container_width=True, key="doc_tab_login", 
                      type="primary" if st.session_state.doctor_tab == "login" else "secondary"):
             st.session_state.doctor_tab = "login"
-            st.rerun()
+            # No st.rerun() — instant switch
     with col_r:
         if st.button("🏥  Create Clinic", use_container_width=True, key="doc_tab_signup",
                      type="primary" if st.session_state.doctor_tab == "signup" else "secondary"):
             st.session_state.doctor_tab = "signup"
-            st.rerun()
+            # No st.rerun() — instant switch
 
     st.markdown('<div style="height:.5rem;"></div>', unsafe_allow_html=True)
 
@@ -60,7 +60,6 @@ def render_doctor_login():
                     st.error("⚠️  Please enter your Clinical ID and Password.")
                 else:
                     with st.spinner("Verifying credentials…"):
-                        time.sleep(0.7)
                         success, token, display_name = authenticate(
                             clinical_id, password, "doctor"
                         )
@@ -91,7 +90,6 @@ def render_doctor_login():
                     st.error("⚠️  Password must be at least 8 characters.")
                 else:
                     with st.spinner("Provisioning clinical network…"):
-                        time.sleep(0.8)
                         ok, msg = register_doctor(
                             clinical_id=st.session_state.generated_clinical_id,
                             hospital_name=hospital_name,
@@ -103,9 +101,7 @@ def render_doctor_login():
                         st.success(f"✅  Network created! Your Clinical ID is: {st.session_state.generated_clinical_id}")
                         st.info("💡 You can log in using either this Clinical ID or your Contact Email.")
                         st.session_state.doctor_tab = "login"
-                        # clear generated ID for next time
                         del st.session_state.generated_clinical_id
-                        time.sleep(4.0)  # Give user enough time to copy/read the ID
                         st.rerun()
                     else:
                         st.error(f"❌  {msg}")

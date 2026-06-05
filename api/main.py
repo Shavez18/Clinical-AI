@@ -143,6 +143,20 @@ def home():
 
 
 # -------------------------
+# Health Check Route
+# -------------------------
+@app.get("/health")
+def health_check():
+    """Lightweight health probe — no model inference."""
+    from datetime import datetime
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "service": "ClinicalAI API"
+    }
+
+
+# -------------------------
 # Diabetes Endpoint
 # -------------------------
 @app.post("/predict/diabetes")

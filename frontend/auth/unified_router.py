@@ -3,6 +3,10 @@ unified_router.py — Cinematic, full-screen healthcare authentication landing p
 Renders an animated ECG/neural background with a dual-panel layout:
   Left:  Hero panel with trust/security badges
   Right: Glassmorphism auth card with Doctor / Patient role switching
+
+Performance fix: portal switching no longer triggers st.rerun().
+The role is stored in session_state and the correct form is rendered
+inline on the same run — making switching instant.
 """
 
 import streamlit as st
@@ -23,7 +27,6 @@ def render_unified_login():
     st.markdown(ANIMATED_BACKGROUND_HTML, unsafe_allow_html=True)
 
     # ── Two-column layout: hero | auth card ─────────────────────────────
-    # We need a thin spacer column on each side for visual breathing room
     _, left_col, gap_col, right_col, _ = st.columns([0.5, 5, 1, 5, 0.5])
 
     # ── LEFT: Hero Panel ─────────────────────────────────────────────────
@@ -32,35 +35,24 @@ def render_unified_login():
 
     # ── RIGHT: Auth Card ─────────────────────────────────────────────────
     with right_col:
-        # Open the glass card wrapper
         st.markdown('<div class="auth-card">', unsafe_allow_html=True)
 
-        # ── Role Switcher ────────────────────────────────────────────────
+        # ── Role Switcher (instant — no rerun) ───────────────────────────
         role_col_a, role_col_b = st.columns(2)
-
         with role_col_a:
             doctor_type = "primary" if st.session_state.login_role == "doctor" else "secondary"
-            if st.button(
-                "🩺  Doctor Portal",
-                use_container_width=True,
-                key="role_doctor_btn",
-                type=doctor_type,
-            ):
+            if st.button("🩺  Doctor Portal", use_container_width=True,
+                         key="role_doctor_btn", type=doctor_type):
                 st.session_state.login_role = "doctor"
-                # Reset patient sub-tab when switching roles
                 st.session_state.pop("patient_tab", None)
-                st.rerun()
+                # No st.rerun() — Streamlit re-renders automatically on button click
 
         with role_col_b:
             patient_type = "primary" if st.session_state.login_role == "patient" else "secondary"
-            if st.button(
-                "🧬  Patient Portal",
-                use_container_width=True,
-                key="role_patient_btn",
-                type=patient_type,
-            ):
+            if st.button("🧬  Patient Portal", use_container_width=True,
+                         key="role_patient_btn", type=patient_type):
                 st.session_state.login_role = "patient"
-                st.rerun()
+                # No st.rerun() — Streamlit re-renders automatically
 
         # Active role indicator pill
         role_label = "Doctor Access" if st.session_state.login_role == "doctor" else "Patient Access"
@@ -84,5 +76,4 @@ def render_unified_login():
         else:
             render_patient_login()
 
-        # Close the glass card wrapper
         st.markdown('</div>', unsafe_allow_html=True)

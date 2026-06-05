@@ -30,7 +30,7 @@ def render_patient_login():
             type="primary" if st.session_state.patient_tab == "login" else "secondary"
         ):
             st.session_state.patient_tab = "login"
-            st.rerun()
+            # No st.rerun() — instant switch
     with col_r:
         if st.button(
             "✨  Create Account",
@@ -39,7 +39,7 @@ def render_patient_login():
             type="primary" if st.session_state.patient_tab == "signup" else "secondary"
         ):
             st.session_state.patient_tab = "signup"
-            st.rerun()
+            # No st.rerun() — instant switch
 
     st.markdown('<div style="height:.5rem;"></div>', unsafe_allow_html=True)
 
@@ -75,7 +75,6 @@ def render_patient_login():
                     st.error("⚠️  Please enter your email and password.")
                 else:
                     with st.spinner("Authenticating…"):
-                        time.sleep(0.7)
                         success, token, display_name = authenticate(
                             email, password, "patient"
                         )
@@ -135,12 +134,10 @@ def render_patient_login():
                     st.error("⚠️  Password must be at least 8 characters.")
                 else:
                     with st.spinner("Creating your account…"):
-                        time.sleep(0.8)
                         ok, msg = register_patient(full_name, email, password)
                     if ok:
                         st.success(f"✅  Account created! Welcome, {full_name}. Please sign in.")
                         st.session_state.patient_tab = "login"
-                        time.sleep(1.2)
                         st.rerun()
                     else:
                         st.error(f"❌  {msg}")

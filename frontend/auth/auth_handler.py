@@ -1,132 +1,85 @@
-import requests
-import streamlit as st
-import time
+"""
+auth_handler.py
+===============
+Authentication facade.
+
+Tries the live FastAPI backend first (if API_URL env var is set and the
+server is reachable). Falls back transparently to embedded_auth — which
+reads the local SQLite file directly — so the app always works on
+Streamlit Cloud where no backend process can run.
+"""
 
 import os
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
+import time
+import socket
+import streamlit as st
 
-def authenticate(username, password, role):
-    """
-    Handles the authentication logic by communicating with the backend API.
-    Includes a fallback for demo credentials.
-    """
-    success = False
-    token = None
-    display_name = username
+from auth.embedded_auth import (
+    authenticate as _embedded_auth,
+    register_patient as _embedded_register_patient,
+    register_doctor as _embedded_register_doctor,
+)
 
+# ── Backend availability ──────────────────────────────────────────────────────
+API_URL = os.getenv("API_URL", "")          # empty → always use embedded mode
+
+def _backend_reachable() -> bool:
+    """Quick TCP probe — avoids hanging requests calls."""
+    if not API_URL:
+        return False
     try:
-        # Actual API call
-        res = requests.post(
-            f"{API_URL}/login", 
-            data={"username": username, "password": password},
-            timeout=5
-        )
-        if res.status_code == 200:
-            data = res.json()
-            token = data.get("access_token")
-            # Override display name if backend provides a full_name
-            backend_full_name = data.get("full_name")
-            if backend_full_name:
-                display_name = backend_full_name
-            success = True
-        else:
-            # Only log mismatch if it's not the demo account
-            if not (username == "admin" and password == "password"):
-                st.sidebar.error(f"Login failed: {res.status_code}")
-    except requests.exceptions.ConnectionError:
-        # Silently log to audit, but don't block demo fallback
-        st.session_state.audit_logs.append(f"Backend offline at {time.ctime()}")
-        if not (username == "admin" and password == "password"):
-            st.toast("⚠️  Backend API is currently offline. Using offline mode.", icon="📡")
-    except Exception as e:
-        st.session_state.audit_logs.append(f"Auth error at {time.ctime()}: {str(e)}")
-
-    # Demo Fallback
-    if not success:
-        if username == "admin" and password == "password":
-            token = "demo_jwt_token_256bit"
-            display_name = "Dr. Admin" if role == "doctor" else "Patient Admin"
-            success = True
-    
-    return success, token, display_name
-
-
-def verify_session():
-    """
-    Verifies if the current JWT token is still valid.
-    In a real app, this would check with the backend.
-    """
-    if not st.session_state.get("token"):
+        from urllib.parse import urlparse
+        parsed = urlparse(API_URL)
+        host = parsed.hostname or "127.0.0.1"
+        port = parsed.port or 8000
+        with socket.create_connection((host, port), timeout=0.5):
+            return True
+    except OSError:
         return False
 
-    # Simple check for now as per existing logic
-    return True
+
+# ── Public API (same signatures as before) ────────────────────────────────────
+
+def authenticate(username: str, password: str, role: str):
+    """
+    Returns (success: bool, token: str | None, display_name: str).
+    Uses embedded SQLite auth directly — instant, no network.
+    """
+    if not hasattr(st.session_state, "audit_logs") or "audit_logs" not in st.session_state:
+        st.session_state.audit_logs = []
+
+    if _backend_reachable():
+        # Optional: try real backend when available (local dev / Docker)
+        try:
+            import requests
+            res = requests.post(
+                f"{API_URL}/login",
+                data={"username": username, "password": password},
+                timeout=3,
+            )
+            if res.status_code == 200:
+                data = res.json()
+                token = data.get("access_token")
+                display_name = data.get("full_name") or username
+                return True, token, display_name
+        except Exception:
+            pass  # fall through to embedded
+
+    # Embedded mode (Streamlit Cloud / no backend)
+    return _embedded_auth(username, password, role)
 
 
 def register_patient(full_name: str, email: str, password: str):
-    """
-    Patient account registration.
-    Calls backend POST /register endpoint.
-    Returns: (success: bool, message: str)
-    """
-    try:
-        res = requests.post(f"{API_URL}/register",
-            json={
-                "username": email, # email as username for patients
-                "email": email, 
-                "password": password,
-                "role": "patient",
-                "full_name": full_name,
-                "hospital_name": ""
-            },
-            timeout=5)
-        
-        if res.status_code == 200:
-            st.session_state.audit_logs.append(
-                f"Patient registration success: {email} at {time.ctime()}"
-            )
-            return True, "Account created successfully"
-            
-        try:
-            return False, res.json().get("detail", "Registration failed")
-        except Exception:
-            return False, f"Registration error (HTTP {res.status_code}): {res.text}"
-    except requests.exceptions.ConnectionError:
-        st.session_state.audit_logs.append(f"Backend offline at {time.ctime()} during patient registration")
-        return False, "Backend API is offline. Please start the backend server."
-    except Exception as e:
-        return False, f"Registration error: {str(e)}"
+    """Register a patient. Uses embedded SQLite — always works."""
+    return _embedded_register_patient(full_name, email, password)
 
-def register_doctor(clinical_id: str, hospital_name: str, doctor_name: str, email: str, password: str):
-    """
-    Doctor account registration.
-    Calls backend POST /register endpoint.
-    Returns: (success: bool, message: str)
-    """
-    try:
-        res = requests.post(f"{API_URL}/register",
-            json={
-                "username": clinical_id,
-                "email": email, 
-                "password": password,
-                "role": "doctor",
-                "full_name": doctor_name,
-                "hospital_name": hospital_name
-            },
-            timeout=5)
-        
-        if res.status_code == 200:
-            st.session_state.audit_logs.append(
-                f"Doctor registration success: {clinical_id} at {time.ctime()}"
-            )
-            return True, "Account created successfully"
-            
-        try:
-            return False, res.json().get("detail", "Registration failed")
-        except Exception:
-            return False, f"Registration error (HTTP {res.status_code}): {res.text}"
-    except requests.exceptions.ConnectionError:
-        st.session_state.audit_logs.append(f"Backend offline at {time.ctime()} during doctor registration")
-        return False, "Backend API is offline. Please start the backend server."
-    except Exception as e:
-        return False, f"Registration error: {str(e)}"
+
+def register_doctor(clinical_id: str, hospital_name: str, doctor_name: str,
+                    email: str, password: str):
+    """Register a doctor. Uses embedded SQLite — always works."""
+    return _embedded_register_doctor(clinical_id, hospital_name, doctor_name,
+                                     email, password)
+
+
+def verify_session():
+    return st.session_state.get("token") is not None

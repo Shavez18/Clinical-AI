@@ -1,8 +1,13 @@
 import sys, os
-sys.path.insert(0, os.path.dirname(__file__))
+
+# ── Path setup: ensure repo root is importable so `src` package works ────────
+_FRONTEND_DIR = os.path.dirname(os.path.abspath(__file__))
+_ROOT_DIR     = os.path.dirname(_FRONTEND_DIR)
+for _p in [_FRONTEND_DIR, _ROOT_DIR]:
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 import streamlit as st
-import requests
 import pandas as pd
 import plotly.graph_objects as go
 import time
@@ -13,33 +18,10 @@ from auth.unified_router import render_unified_login
 from styles.global_css import SIDEBAR_LOGO
 from ui.copilot_widget import render_copilot, init_copilot_state
 
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
+# No FastAPI subprocess — models are loaded directly via @st.cache_resource
+API_URL = os.getenv("API_URL", "")    # kept for legacy dashboard signatures
 
 st.set_page_config(page_title="ClinicalAI | Decision Support System", page_icon="⚕️", layout="wide")
-
-def ensure_backend_running():
-    import socket
-    import subprocess
-    import time
-    def is_port_in_use(port: int) -> bool:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            return s.connect_ex(('127.0.0.1', port)) == 0
-
-    if not is_port_in_use(8000):
-        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        if os.path.exists(os.path.join(root_dir, "api", "main.py")):
-            subprocess.Popen(
-                [sys.executable, "-m", "uvicorn", "api.main:app", "--host", "127.0.0.1", "--port", "8000"],
-                cwd=root_dir
-            )
-            # Wait dynamically up to 40 seconds for the backend (and models) to load
-            for _ in range(40):
-                if is_port_in_use(8000):
-                    break
-                time.sleep(1)
-    return True
-
-ensure_backend_running()
 
 # ---------------- SESSION ----------------
 init_session()
@@ -86,6 +68,7 @@ html, body, .stApp {
     background-color: var(--bg-base) !important;
     font-family: 'DM Sans', sans-serif !important;
     color: var(--text-primary) !important;
+    overflow: auto !important;   /* fix: never clip the dashboard */
 }
 
 /* Streamlit chrome cleanup */
