@@ -101,10 +101,11 @@ def render_doctor_login():
                         )
                     if ok:
                         st.success(f"✅  Network created! Your Clinical ID is: {st.session_state.generated_clinical_id}")
+                        st.info("💡 You can log in using either this Clinical ID or your Contact Email.")
                         st.session_state.doctor_tab = "login"
                         # clear generated ID for next time
                         del st.session_state.generated_clinical_id
-                        time.sleep(1.5)
+                        time.sleep(4.0)  # Give user enough time to copy/read the ID
                         st.rerun()
                     else:
                         st.error(f"❌  {msg}")
