@@ -62,22 +62,10 @@ def render_drug_dashboard(API_URL, headers):
             st.warning("Please enter at least two medications to check interactions.")
             return
 
-        loader_placeholder = st.empty()
-        loader_placeholder.markdown("""
-            <div class="cyber-loader">
-                <div class="spinner"></div>
-                <div style="color:#00f3ff; font-family:'JetBrains Mono'; letter-spacing:2px; margin-top:1rem;">
-                    ANALYZING MULTI-DRUG ECOSYSTEM...
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        time.sleep(1.5)
-
-        data = fetch_drug_interactions(API_URL, headers, drug_list)
+        with st.spinner("Analyzing multi-drug ecosystem…"):
+            data = fetch_drug_interactions(API_URL, headers, drug_list)
         
         if "error" in data:
-            loader_placeholder.empty()
             st.error(f"System Error: {data['error']}")
             return
             
@@ -91,8 +79,6 @@ def render_drug_dashboard(API_URL, headers):
         pharma_classes = extract_pharmacological_classes(safety_profiles)
         comp_matrix = generate_compatibility_matrix(drug_list, interactions)
         organ_impact = estimate_organ_impact(interactions, safety_profiles)
-        
-        loader_placeholder.empty()
         
         # -------------------------------------------------------------
         # ROW 1: RISK & ORGAN IMPACT
