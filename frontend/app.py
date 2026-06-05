@@ -13,30 +13,29 @@ from auth.unified_router import render_unified_login
 from styles.global_css import SIDEBAR_LOGO
 from ui.copilot_widget import render_copilot, init_copilot_state
 
-API_URL = os.getenv("API_URL", "http://localhost:8000")
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
 st.set_page_config(page_title="ClinicalAI | Decision Support System", page_icon="⚕️", layout="wide")
 
-@st.cache_resource
-def start_backend():
+def ensure_backend_running():
     import socket
     import subprocess
     def is_port_in_use(port: int) -> bool:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            return s.connect_ex(('localhost', port)) == 0
+            return s.connect_ex(('127.0.0.1', port)) == 0
 
     if not is_port_in_use(8000):
         root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         if os.path.exists(os.path.join(root_dir, "api", "main.py")):
             subprocess.Popen(
-                [sys.executable, "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"],
+                [sys.executable, "-m", "uvicorn", "api.main:app", "--host", "127.0.0.1", "--port", "8000"],
                 cwd=root_dir
             )
             import time
-            time.sleep(3)
+            time.sleep(5)
     return True
 
-start_backend()
+ensure_backend_running()
 
 # ---------------- SESSION ----------------
 init_session()
