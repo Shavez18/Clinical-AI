@@ -1,5 +1,1 @@
-# System packages for Streamlit Cloud
-# These are apt packages installed before Python packages
-
-# Required for bcrypt compilation
 build-essential
