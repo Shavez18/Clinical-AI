@@ -20,6 +20,7 @@ st.set_page_config(page_title="ClinicalAI | Decision Support System", page_icon=
 def ensure_backend_running():
     import socket
     import subprocess
+    import time
     def is_port_in_use(port: int) -> bool:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             return s.connect_ex(('127.0.0.1', port)) == 0
@@ -31,8 +32,11 @@ def ensure_backend_running():
                 [sys.executable, "-m", "uvicorn", "api.main:app", "--host", "127.0.0.1", "--port", "8000"],
                 cwd=root_dir
             )
-            import time
-            time.sleep(5)
+            # Wait dynamically up to 40 seconds for the backend (and models) to load
+            for _ in range(40):
+                if is_port_in_use(8000):
+                    break
+                time.sleep(1)
     return True
 
 ensure_backend_running()
