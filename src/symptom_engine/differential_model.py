@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger("ClinicalEngine")
 
 # Load artifacts
-_BASE = r"C:\Major project\ai-health-assistant\src\models"
+_BASE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models")
 try:
     _model = joblib.load(os.path.join(_BASE, "differential_model.pkl"))
     _vectorizer = joblib.load(os.path.join(_BASE, "clinical_vectorizer.pkl"))
