@@ -87,7 +87,10 @@ def register_patient(full_name: str, email: str, password: str):
             )
             return True, "Account created successfully"
             
-        return False, res.json().get("detail", "Registration failed")
+        try:
+            return False, res.json().get("detail", "Registration failed")
+        except Exception:
+            return False, f"Registration error (HTTP {res.status_code}): {res.text}"
     except Exception as e:
         return False, f"Registration error: {str(e)}"
 
@@ -115,6 +118,9 @@ def register_doctor(clinical_id: str, hospital_name: str, doctor_name: str, emai
             )
             return True, "Account created successfully"
             
-        return False, res.json().get("detail", "Registration failed")
+        try:
+            return False, res.json().get("detail", "Registration failed")
+        except Exception:
+            return False, f"Registration error (HTTP {res.status_code}): {res.text}"
     except Exception as e:
         return False, f"Registration error: {str(e)}"
