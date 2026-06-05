@@ -10,6 +10,7 @@ uvicorn
 plotly
 kaleido==0.2.1
 fpdf2
+reportlab
 python-jose[cryptography]
 bcrypt
 sqlalchemy
