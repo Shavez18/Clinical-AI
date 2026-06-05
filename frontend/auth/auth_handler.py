@@ -3,7 +3,7 @@ import streamlit as st
 import time
 
 import os
-API_URL = os.getenv("API_URL", "http://localhost:8000")
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
 def authenticate(username, password, role):
     """
@@ -91,6 +91,9 @@ def register_patient(full_name: str, email: str, password: str):
             return False, res.json().get("detail", "Registration failed")
         except Exception:
             return False, f"Registration error (HTTP {res.status_code}): {res.text}"
+    except requests.exceptions.ConnectionError:
+        st.session_state.audit_logs.append(f"Backend offline at {time.ctime()} during patient registration")
+        return False, "Backend API is offline. Please start the backend server."
     except Exception as e:
         return False, f"Registration error: {str(e)}"
 
@@ -122,5 +125,8 @@ def register_doctor(clinical_id: str, hospital_name: str, doctor_name: str, emai
             return False, res.json().get("detail", "Registration failed")
         except Exception:
             return False, f"Registration error (HTTP {res.status_code}): {res.text}"
+    except requests.exceptions.ConnectionError:
+        st.session_state.audit_logs.append(f"Backend offline at {time.ctime()} during doctor registration")
+        return False, "Backend API is offline. Please start the backend server."
     except Exception as e:
         return False, f"Registration error: {str(e)}"
