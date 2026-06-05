@@ -45,6 +45,10 @@ def render_patient_login():
 
     # ── LOGIN TAB ────────────────────────────────────────────────────────
     if st.session_state.patient_tab == "login":
+        if "patient_success_msg" in st.session_state:
+            st.success(st.session_state.patient_success_msg)
+            del st.session_state.patient_success_msg
+
         with st.form("patient_login_form", clear_on_submit=False):
             email = st.text_input(
                 "Email Address",
@@ -136,7 +140,7 @@ def render_patient_login():
                     with st.spinner("Creating your account…"):
                         ok, msg = register_patient(full_name, email, password)
                     if ok:
-                        st.success(f"✅  Account created! Welcome, {full_name}. Please sign in.")
+                        st.session_state.patient_success_msg = f"✅  Account created successfully! Welcome, {full_name}. Please sign in below."
                         st.session_state.patient_tab = "login"
                         st.rerun()
                     else:

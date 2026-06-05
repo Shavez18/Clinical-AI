@@ -36,6 +36,10 @@ def render_doctor_login():
     st.markdown('<div style="height:.5rem;"></div>', unsafe_allow_html=True)
 
     if st.session_state.doctor_tab == "login":
+        if "doctor_success_msg" in st.session_state:
+            st.success(st.session_state.doctor_success_msg)
+            del st.session_state.doctor_success_msg
+
         with st.form("doctor_login_form", clear_on_submit=False):
             clinical_id = st.text_input(
                 "Clinical ID / Email",
@@ -98,8 +102,7 @@ def render_doctor_login():
                             password=password
                         )
                     if ok:
-                        st.success(f"✅  Network created! Your Clinical ID is: {st.session_state.generated_clinical_id}")
-                        st.info("💡 You can log in using either this Clinical ID or your Contact Email.")
+                        st.session_state.doctor_success_msg = f"✅  Network created successfully! Your Clinical ID is: **{st.session_state.generated_clinical_id}**\n\n💡 You can log in using either this Clinical ID or your Contact Email."
                         st.session_state.doctor_tab = "login"
                         del st.session_state.generated_clinical_id
                         st.rerun()
