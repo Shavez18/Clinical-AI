@@ -10,3 +10,10 @@ uvicorn
 plotly
 kaleido==0.2.1
 fpdf2
+python-jose[cryptography]
+passlib[bcrypt]
+sqlalchemy
+python-multipart
+spacy
+requests
+streamlit

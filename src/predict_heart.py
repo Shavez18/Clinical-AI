@@ -40,7 +40,7 @@ log = logging.getLogger("heart_predict")
 # ---------------------------------------------------------------------------
 # Model artifact paths (absolute, matching train_heart.py)
 # ---------------------------------------------------------------------------
-_BASE = r"C:\Major project\ai-health-assistant\src\models"
+_BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
 _MODEL_PATH   = os.path.join(_BASE, "elite_heart_model.pkl")
 _SCALER_PATH  = os.path.join(_BASE, "heart_scaler.pkl")
 _COLUMNS_PATH = os.path.join(_BASE, "heart_model_columns.pkl")

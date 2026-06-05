@@ -17,12 +17,15 @@ from api.auth import SECRET_KEY, ALGORITHM
 
 app = FastAPI(title="AI Health Assistant API")
 
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # -------------------------
 # Load Diabetes Model
 # -------------------------
-diabetes_model = joblib.load("C:\\Major project\\ai-health-assistant\\src\\models\\elite_diabetes_model.pkl")
-diabetes_scaler = joblib.load("C:\\Major project\\ai-health-assistant\\src\\models\\scaler.pkl")
-diabetes_threshold = joblib.load("C:\\Major project\\ai-health-assistant\\src\\models\\threshold.pkl")
+diabetes_model = joblib.load(os.path.join(BASE_DIR, "src", "models", "elite_diabetes_model.pkl"))
+diabetes_scaler = joblib.load(os.path.join(BASE_DIR, "src", "models", "scaler.pkl"))
+diabetes_threshold = joblib.load(os.path.join(BASE_DIR, "src", "models", "threshold.pkl"))
 
 # -------------------------
 # Heart Model — loaded inside src.predict_heart at import time
@@ -31,8 +34,8 @@ diabetes_threshold = joblib.load("C:\\Major project\\ai-health-assistant\\src\\m
 # -------------------------
 # Load Symptom Model
 # -------------------------
-symptom_model = joblib.load("C:\\Major project\\ai-health-assistant\\src\\models\\symptom_model.pkl")
-symptom_vectorizer = joblib.load("C:\\Major project\\ai-health-assistant\\src\\models\\symptom_vectorizer.pkl")
+symptom_model = joblib.load(os.path.join(BASE_DIR, "src", "models", "symptom_model.pkl"))
+symptom_vectorizer = joblib.load(os.path.join(BASE_DIR, "src", "models", "symptom_vectorizer.pkl"))
 
 # -------------------------
 # Database Setup
