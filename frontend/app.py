@@ -797,3 +797,13 @@ elif page == "ℹ️  About":
 
 # Render floating AI Copilot widget globally on all authenticated pages
 render_copilot()
+
+# ---- PERSIST AUDIT LOGS ----
+if "audit_logs" in st.session_state:
+    import json
+    log_file = os.path.join(_FRONTEND_DIR, "audit_logs.json")
+    try:
+        with open(log_file, "w") as f:
+            json.dump(st.session_state.audit_logs, f)
+    except Exception:
+        pass

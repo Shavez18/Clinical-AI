@@ -264,6 +264,10 @@ def apply_advanced_theme():
         background-color: transparent !important;
         padding: 0 !important;
         color: #00f3ff !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 1rem !important;
     }
 
     /* ── Buttons ───────────────────────────────────────────────────────────── */

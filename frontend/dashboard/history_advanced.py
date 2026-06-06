@@ -221,6 +221,9 @@ def render_history_dashboard(username: str):
                                    key="hist_sev")
         with fc4:
             if st.button("⟳  Reset Filters", use_container_width=True, key="hist_reset"):
+                for k in ["hist_search", "hist_mod", "hist_sev"]:
+                    if k in st.session_state:
+                        del st.session_state[k]
                 st.rerun()
 
         st.markdown("<br>", unsafe_allow_html=True)

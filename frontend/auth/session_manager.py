@@ -11,7 +11,17 @@ def init_session():
     if "last_activity" not in st.session_state:
         st.session_state.last_activity = time.time()
     if "audit_logs" not in st.session_state:
-        st.session_state.audit_logs = []
+        import json
+        import os
+        log_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "audit_logs.json")
+        if os.path.exists(log_file):
+            try:
+                with open(log_file, "r") as f:
+                    st.session_state.audit_logs = json.load(f)
+            except Exception:
+                st.session_state.audit_logs = []
+        else:
+            st.session_state.audit_logs = []
     if "portal" not in st.session_state:
         st.session_state.portal = None
 
@@ -50,3 +60,7 @@ def clear_session():
     st.session_state.role = None
     st.session_state.last_activity = 0
     st.session_state.portal = None
+    if "navigation_radio" in st.session_state:
+        del st.session_state["navigation_radio"]
+    if "sidebar_navigation_radio" in st.session_state:
+        del st.session_state["sidebar_navigation_radio"]
